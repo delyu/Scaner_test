@@ -7,6 +7,7 @@
 #include "scanerDlg.h"
 #include "afxdialogex.h"
 
+
 #include "fpga_rs232.h"
 #include "laser_rs232.h"
 #include "inclinometer_rs232.h"
@@ -156,7 +157,7 @@ ON_BN_CLICKED(IDC_BUTTON_BEGIN_GPS, &CscanerDlg::OnBnClickedButtonBeginGps)
 ON_BN_CLICKED(IDC_BUTTON_CLEAR_TEXT, &CscanerDlg::OnBnClickedButtonClearText)
 ON_BN_CLICKED(IDC_BUTTON_STOP_GPS, &CscanerDlg::OnBnClickedButtonStopGps)
 ON_BN_CLICKED(IDC_BUTTON_EDTT_TEST, &CscanerDlg::OnBnClickedButtonEdttTest)
-ON_BN_CLICKED(IDC_CHECK_WARM, &CscanerDlg::OnBnClickedCheckWarm)
+//ON_BN_CLICKED(IDC_CHECK_WARM, &CscanerDlg::OnBnClickedCheckWarm)
 ON_EN_CHANGE(IDC_EDIT7, &CscanerDlg::OnEnChangeEdit7)
 ON_EN_CHANGE(IDC_EDIT_WARM_N, &CscanerDlg::OnEnChangeEditWarmN)
 ON_EN_CHANGE(IDC_EDIT_WARM_V2AD, &CscanerDlg::OnEnChangeEditWarmV2ad)
@@ -591,14 +592,53 @@ void CscanerDlg::OnBnClickedButton18()
 //获取探测器温度
 void CscanerDlg::OnBnClickedButton13()
 {
-	if( !fpga_H )
+	/*if( !fpga_H )
 	{
 		AfxMessageBox( _T("fpga没有打开") );
 		return;
-	}
+	}*/
+	char chRecvBuffer[72];
+	if (!Get_Prober_Tem(fpga_H, chRecvBuffer))												//获取探测器温度
+		_ReportError(_T("获取温度补偿失败"));
 
-	if( !Get_Prober_Tem(fpga_H) )												//获取探测器温度
-		_ReportError( _T("获取温度补偿失败") );
+	
+	CString str, tem,stem1;
+	//stem1 = "/r/n";
+	/*if (fpga_H)
+	{
+	}*/
+	SetDlgItemText(IDC_EDIT19, str);
+	for (int i = 0; i < sizeof(chRecvBuffer); i++)
+	{
+		tem.Format(_T("% 02x"), chRecvBuffer[i] & 0xff);
+		if (tem=="a5"&&stem1!="a5")
+		{
+			stem1 = tem; 			
+		}
+		else if (tem == "a5"&& stem1 == "a5")
+		{  		
+			str += "\r\n";
+			str += tem;	
+			str += tem;	
+			str += " ";
+			stem1 = "";
+		}
+		else
+		{
+			if (stem1 == "a5")
+			{
+				str += stem1;
+				str += " ";
+			}
+			str += tem;
+			str += " ";
+			stem1 = tem;
+		}
+				
+		
+	}	   	
+	
+	SetDlgItemText(IDC_EDIT19, str);
 }
 
 
@@ -1382,28 +1422,28 @@ void CscanerDlg::OnBnClickedButtonEdttTest()
 	pEdit->SetFocus();
 }
 
-void CscanerDlg::OnBnClickedCheckWarm()
-{
-	CButton* pButton = (CButton*)GetDlgItem(IDC_CHECK_WARM);
-	if (NULL == fpga_H)
-	{
-		if (BST_CHECKED == pButton->GetCheck())
-			pButton->SetCheck(BST_UNCHECKED);
-		return;
-	}
-
-	switch( pButton->GetCheck() )
-	{
-	case BST_CHECKED:
-		Warm_ON(  fpga_H );
-		break;
-
-	case BST_UNCHECKED:
-		Warm_OFF( fpga_H  );
-		break;
-	}
-
-}
+//void CscanerDlg::OnBnClickedCheckWarm()
+//{
+//	CButton* pButton = (CButton*)GetDlgItem(IDC_CHECK_WARM);
+//	if (NULL == fpga_H)
+//	{
+//		if (BST_CHECKED == pButton->GetCheck())
+//			pButton->SetCheck(BST_UNCHECKED);
+//		return;
+//	}
+//
+//	switch( pButton->GetCheck() )
+//	{
+//	case BST_CHECKED:
+//		Warm_ON(  fpga_H );
+//		break;
+//
+//	case BST_UNCHECKED:
+//		Warm_OFF( fpga_H  );
+//		break;
+//	}
+//
+//}
 
 void CscanerDlg::OnEnChangeEdit7()
 {

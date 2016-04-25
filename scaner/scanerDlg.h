@@ -158,7 +158,7 @@ public:
 	afx_msg void OnBnClickedButtonClearText();
 	afx_msg void OnBnClickedButtonStopGps();
 	afx_msg void OnBnClickedButtonEdttTest();
-	afx_msg void OnBnClickedCheckWarm();
+//	afx_msg void OnBnClickedCheckWarm();
 	afx_msg void OnEnChangeEdit7();
 	afx_msg void OnEnChangeEditWarmN();
 	afx_msg void OnEnChangeEditWarmV2ad();

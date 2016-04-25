@@ -131,11 +131,57 @@ BOOL Set_Prober_Gain(HANDLE HComx,int Gdata)
 **                                                                                                   
 ** Returned value:          成功返回true，否则返回false。 
 *********************************************************************************************************/
-BOOL Get_Prober_Tem(HANDLE HComx)
+BOOL Get_Prober_Tem(HANDLE HComx,char chRecvBuffer[])
 {
-	static UCHAR scomdata[3]={0xa5,0xa5,0x04};
+	/*static UCHAR scomdata[3]={0xa5,0xa5,0x04};
 	DWORD dwWrite = 0;
-	return WriteFile( HComx , scomdata , 3 , &dwWrite , NULL );
+	return WriteFile( HComx , scomdata , 3 , &dwWrite , NULL );*/
+	//////////////////////////////////////////////////////////////////////////
+	int nRetryCount = 0;
+	int nDataLen = 0;
+	char chDataBuffer[3] = { 0xa5,0xa5,0x04 };
+	char readDataBuffer[72];
+	//char TestRecvBuffer[72] = { 0xA5,0xA5,0x01,0x08,0xA5,0xA5,0x02,0xA5,0xA5,0x03,0xA5,0xA5,0x06,0xa5,0x87,0x67 };
+
+	//itoa(Cdata, chDataBuffer + 6, 10);
+	nDataLen =  strlen(chDataBuffer );
+	DWORD dwSize;	
+	//char* pAccTag;
+
+	while (nRetryCount++ < 6)
+	{
+
+	if (!WriteFile(HComx, chDataBuffer, nDataLen, &dwSize, NULL))
+			goto SLEEP_AND_RETRY;
+
+		Sleep(200);
+
+		if (dwSize != nDataLen)
+			goto SLEEP_AND_RETRY;
+
+		if (!ReadFile(HComx, readDataBuffer, 72, &dwSize, NULL))
+			goto SLEEP_AND_RETRY;
+		for(int i = 0; i < sizeof(readDataBuffer); i++)
+		{
+			chRecvBuffer[i] = readDataBuffer[i];
+		}
+		//delete readDataBuffer;
+
+	/*	if (dwSize < nDataLen)
+			goto SLEEP_AND_RETRY;
+
+		chRecvBuffer[dwSize] = 0;*/
+
+// 		pAccTag = strstr(chRecvBuffer, "ACC");
+// 		if (!pAccTag)
+// 			goto SLEEP_AND_RETRY;
+
+		return TRUE;
+
+	SLEEP_AND_RETRY:
+		Sleep(100);
+	}
+	return FALSE;
 }
 
 

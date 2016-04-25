@@ -124,26 +124,72 @@ BOOL Get_Laser_F(HANDLE HComx)
 *********************************************************************************************************/
 BOOL Set_Laser_Currents(HANDLE HComx,int Cdata)
 {
-	char scomdata[16] = {0x61,0x63,0x63,0x20,0x32,0x20};
-	if(Cdata >= 1000)
-	{
-		scomdata[6] = Cdata / 1000 + 0x30;
-		scomdata[7] = (Cdata % 1000)/100 + 0x30;
-		scomdata[8] = (Cdata % 100)/10 + 0x30;
-		scomdata[9] = Cdata % 10 + 0x30;
-		scomdata[10]= 0x0d;
-		scomdata[11]= 0x0a;
-	}
-	else//??????????????????????找施蕾确认
-	{
-		scomdata[6] = Cdata / 100 + 0x30;
-		scomdata[7] = (Cdata % 100)/10 + 0x30;
-		scomdata[8] = Cdata % 10 + 0x30;
-		scomdata[9]= 0x0d;
-		scomdata[10]= 0x0a;
-	}
-	DWORD  dwLenth = (DWORD)strlen(scomdata);
+	//char scomdata[16] = {0x61,0x63,0x63,0x20,0x32,0x20};
+	//if(Cdata >= 1000)
+	//{
+	//	scomdata[6] = Cdata / 1000 + 0x30;
+	//	scomdata[7] = (Cdata % 1000)/100 + 0x30;
+	//	scomdata[8] = (Cdata % 100)/10 + 0x30;
+	//	scomdata[9] = Cdata % 10 + 0x30;
+	//	scomdata[10]= 0x0d;
+	//	scomdata[11]= 0x0a;
+	//}
+	//else//??????????????????????找施蕾确认
+	//{
+	//	scomdata[6] = Cdata / 100 + 0x30;
+	//	scomdata[7] = (Cdata % 100)/10 + 0x30;
+	//	scomdata[8] = Cdata % 10 + 0x30;
+	//	scomdata[9]= 0x0d;
+	//	scomdata[10]= 0x0a;
+	//}
+	//DWORD  dwLenth = (DWORD)strlen(scomdata);
 
-	DWORD dwWrite = 0;
-	return WriteFile( HComx , scomdata , dwLenth , &dwWrite , NULL );
+	//DWORD dwWrite = 0;
+	//return WriteFile( HComx , scomdata , dwLenth , &dwWrite , NULL );
+	 //////////////////////////////////////////////////////////////////////////
+	int nRetryCount = 0;
+	int nDataLen = 0;
+	char chDataBuffer[16] = { 0x61,0x63,0x63,0x20,0x32,0x20 };
+	char chRecvBuffer[32];
+
+	itoa(Cdata, chDataBuffer + 6, 10);
+	nDataLen = 6 + strlen(chDataBuffer + 6);
+
+	chDataBuffer[nDataLen++] = 0x0d;
+	chDataBuffer[nDataLen++] = 0x0a;
+
+	DWORD dwSize;
+
+	char* pAccTag;
+
+	while (nRetryCount++ < 6)
+	{
+
+		if (!WriteFile(HComx, chDataBuffer, nDataLen, &dwSize, NULL))
+			goto SLEEP_AND_RETRY;
+
+		Sleep(200);
+
+		if (dwSize != nDataLen)
+			goto SLEEP_AND_RETRY;
+
+		if (!ReadFile(HComx, chRecvBuffer, sizeof(chRecvBuffer) - 1, &dwSize, NULL))
+			goto SLEEP_AND_RETRY;
+
+		if (dwSize < nDataLen)
+			goto SLEEP_AND_RETRY;
+
+		chRecvBuffer[dwSize] = 0;
+
+		pAccTag = strstr(chRecvBuffer, "ACC");
+		if (!pAccTag)
+			goto SLEEP_AND_RETRY;
+
+		return TRUE;
+
+	SLEEP_AND_RETRY:
+		Sleep(100);
+	}
+	return FALSE;
+
 }
