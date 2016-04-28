@@ -4,7 +4,7 @@
 HANDLE Init_fpga_rs232(const CString& ComName);										//FPGA串口初始化
 VOID Set_fpga_brate(long BrateNUM);												//设置拨特率
 BOOL Set_Prober_Gain(HANDLE HComx,int Gdata);									//设置探测器增益,即APD增益
-BOOL Get_Prober_Tem(HANDLE HComx, char chRecvBuffer[]);							//获取探测器温度
+BOOL Get_Prober_Tem(HANDLE HComx, unsigned char chRecvBuffer[]);				//获取探测器温度
 BOOL Laser_ON(HANDLE HComx);													//开激光
 BOOL Laser_OFF(HANDLE HComx);													//关激光
 BOOL Set_Vth(HANDLE HComx,int Vdata);											//设置阈值电压

@@ -131,7 +131,7 @@ BOOL Set_Prober_Gain(HANDLE HComx,int Gdata)
 **                                                                                                   
 ** Returned value:          成功返回true，否则返回false。 
 *********************************************************************************************************/
-BOOL Get_Prober_Tem(HANDLE HComx,char chRecvBuffer[])
+BOOL Get_Prober_Tem(HANDLE HComx,unsigned char chRecvBuffer[])
 {
 	/*static UCHAR scomdata[3]={0xa5,0xa5,0x04};
 	DWORD dwWrite = 0;
@@ -141,7 +141,7 @@ BOOL Get_Prober_Tem(HANDLE HComx,char chRecvBuffer[])
 	int nDataLen = 0;
 	char chDataBuffer[3] = { 0xa5,0xa5,0x04 };
 	char readDataBuffer[72];
-	//char TestRecvBuffer[72] = { 0xA5,0xA5,0x01,0x08,0xA5,0xA5,0x02,0xA5,0xA5,0x03,0xA5,0xA5,0x06,0xa5,0x87,0x67 };
+	//char TestRecvBuffer[72] = { 0xA5,0xA5,0x07,0x80,0x07,0xF4,0x00,0x01,0x05,0x7F,0x00,0xC7,0x00,0x03,0x0F,0xA0,0x0A,0x28,0x00,0x95,0x00,0xF0,0x14,0xE6,0x00,0x16,0x00,0x0A,0x01,0x18,0x00,0x0D,0x00,0x10,0x0D,0x0A };
 
 	//itoa(Cdata, chDataBuffer + 6, 10);
 	nDataLen =  strlen(chDataBuffer );
@@ -151,7 +151,7 @@ BOOL Get_Prober_Tem(HANDLE HComx,char chRecvBuffer[])
 	while (nRetryCount++ < 6)
 	{
 
-	if (!WriteFile(HComx, chDataBuffer, nDataLen, &dwSize, NULL))
+		if (!WriteFile(HComx, chDataBuffer, nDataLen, &dwSize, NULL))
 			goto SLEEP_AND_RETRY;
 
 		Sleep(200);
@@ -163,7 +163,7 @@ BOOL Get_Prober_Tem(HANDLE HComx,char chRecvBuffer[])
 			goto SLEEP_AND_RETRY;
 		for(int i = 0; i < sizeof(readDataBuffer); i++)
 		{
-			chRecvBuffer[i] = readDataBuffer[i];
+			chRecvBuffer[i] =(unsigned char)readDataBuffer[i];
 		}
 		//delete readDataBuffer;
 

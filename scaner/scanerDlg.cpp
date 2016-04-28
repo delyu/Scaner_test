@@ -157,7 +157,7 @@ ON_BN_CLICKED(IDC_BUTTON_BEGIN_GPS, &CscanerDlg::OnBnClickedButtonBeginGps)
 ON_BN_CLICKED(IDC_BUTTON_CLEAR_TEXT, &CscanerDlg::OnBnClickedButtonClearText)
 ON_BN_CLICKED(IDC_BUTTON_STOP_GPS, &CscanerDlg::OnBnClickedButtonStopGps)
 ON_BN_CLICKED(IDC_BUTTON_EDTT_TEST, &CscanerDlg::OnBnClickedButtonEdttTest)
-//ON_BN_CLICKED(IDC_CHECK_WARM, &CscanerDlg::OnBnClickedCheckWarm)
+ON_BN_CLICKED(IDC_CHECK_WARM, &CscanerDlg::OnBnClickedCheckWarm)
 ON_EN_CHANGE(IDC_EDIT7, &CscanerDlg::OnEnChangeEdit7)
 ON_EN_CHANGE(IDC_EDIT_WARM_N, &CscanerDlg::OnEnChangeEditWarmN)
 ON_EN_CHANGE(IDC_EDIT_WARM_V2AD, &CscanerDlg::OnEnChangeEditWarmV2ad)
@@ -592,12 +592,12 @@ void CscanerDlg::OnBnClickedButton18()
 //获取探测器温度
 void CscanerDlg::OnBnClickedButton13()
 {
-	/*if( !fpga_H )
+	if( !fpga_H )
 	{
 		AfxMessageBox( _T("fpga没有打开") );
 		return;
-	}*/
-	char chRecvBuffer[72];
+	}
+	unsigned char chRecvBuffer[72];
 	if (!Get_Prober_Tem(fpga_H, chRecvBuffer))												//获取探测器温度
 		_ReportError(_T("获取温度补偿失败"));
 
@@ -608,9 +608,131 @@ void CscanerDlg::OnBnClickedButton13()
 	{
 	}*/
 	SetDlgItemText(IDC_EDIT19, str);
+	int j = 0;
 	for (int i = 0; i < sizeof(chRecvBuffer); i++)
 	{
-		tem.Format(_T("% 02x"), chRecvBuffer[i] & 0xff);
+
+		if (chRecvBuffer[i]==0xa5&&chRecvBuffer[i+1]==0xa5&& chRecvBuffer[i+34] == 0x0d && chRecvBuffer[i + 35] == 0x0a)
+		{
+			i += 2;
+			j = i;
+		}
+		
+		//////////////////////////////////////////////////////////////////////////
+		int k = i - j;
+		if (k< 34)
+		{  
+			int termn = chRecvBuffer[i] * 256 + chRecvBuffer[i + 1];
+			tem.Format(_T("%d"), termn );
+			switch (k/2)
+			{
+			case 0	:
+				str += "APD温度: ";
+					str += tem;
+					str += "\r\n";
+					break;
+			case 1:
+				str += "高压分压: ";
+				str += tem;
+				str += "\r\n"; 		
+				break;
+			case 2:
+				str += "电池电压: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 3:
+				str += "电源切换电压: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 4:
+				str += "激光重频: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 5:
+				str += "激光开关: ";
+				if (tem == "2")
+					str += "开";
+				else
+				{
+					str += "关";
+				}
+				str += "\r\n";
+				break;
+			case 6:
+				str += "整形脉宽: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 7:
+				str += "灵敏度: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 8:
+				str += "整形阈值1: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 9:
+				str += "整形阈值2: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 10:
+				str += "温补参数M: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 11:
+				str += "温补参数N: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 12:
+				str += "温补开关: ";
+				if (tem == "10")
+					str += "开";
+				else
+				{
+					str += "关";
+				}
+				str += "\r\n";
+				break;
+			case 13:
+				str += "TDC延时: ";
+				str += tem;
+				str += "\r\n";
+				break;
+			case 14:
+				str += "GPS开关: ";
+				if (tem == "13")
+					str += "开";
+				else
+				{
+					str += "关";
+				}
+				str += "\r\n";
+				break;
+			case 15:
+				str += "倾角传感器开关: ";
+				if(tem=="16")
+				str += "开";
+				else
+				{
+					str += "关";
+				}
+				str += "\r\n";
+				break;
+			default:
+				break;
+			}				
+			i++;
+		}
+		//////////////////////////////////////////////////////////////////////////
+		/*		 tem.Format(_T("% 02x"), chRecvBuffer[i] & 0xff);
 		if (tem=="a5"&&stem1!="a5")
 		{
 			stem1 = tem; 			
@@ -633,7 +755,7 @@ void CscanerDlg::OnBnClickedButton13()
 			str += tem;
 			str += " ";
 			stem1 = tem;
-		}
+		}*/
 				
 		
 	}	   	
@@ -1263,8 +1385,8 @@ void CscanerDlg::OnBnClickedButtonGetInfo()
 		AfxMessageBox(_T("fpga没有打开"));
 		return;
 	}
-
-	CWnd* pWnd = GetDlgItem( IDC_BUTTON_GET_INFO );
+	
+	/*CWnd* pWnd = GetDlgItem( IDC_BUTTON_GET_INFO );
 	if( !m_bAskForLaserInfo )
 	{
 		SetTimer( TIMER_laser , 1000 , NULL );
@@ -1276,7 +1398,7 @@ void CscanerDlg::OnBnClickedButtonGetInfo()
 		KillTimer( TIMER_laser );
 	}
 
-	m_bAskForLaserInfo = !m_bAskForLaserInfo;
+	m_bAskForLaserInfo = !m_bAskForLaserInfo;*/
 }
 
 
@@ -1422,28 +1544,29 @@ void CscanerDlg::OnBnClickedButtonEdttTest()
 	pEdit->SetFocus();
 }
 
-//void CscanerDlg::OnBnClickedCheckWarm()
-//{
-//	CButton* pButton = (CButton*)GetDlgItem(IDC_CHECK_WARM);
-//	if (NULL == fpga_H)
-//	{
-//		if (BST_CHECKED == pButton->GetCheck())
-//			pButton->SetCheck(BST_UNCHECKED);
-//		return;
-//	}
-//
-//	switch( pButton->GetCheck() )
-//	{
-//	case BST_CHECKED:
-//		Warm_ON(  fpga_H );
-//		break;
-//
-//	case BST_UNCHECKED:
-//		Warm_OFF( fpga_H  );
-//		break;
-//	}
-//
-//}
+void CscanerDlg::OnBnClickedCheckWarm()
+{
+	CButton* pButton = (CButton*)GetDlgItem(IDC_CHECK_WARM);
+	if (NULL == fpga_H)
+	{
+		if (BST_CHECKED == pButton->GetCheck())
+			pButton->SetCheck(BST_UNCHECKED);
+		return;
+	}
+
+	switch (pButton->GetCheck())
+	{
+	case BST_CHECKED:
+		Warm_ON(fpga_H);
+		break;
+
+	case BST_UNCHECKED:
+		Warm_OFF(fpga_H);
+		break;
+	}
+	OnBnClickedButton9();
+
+}
 
 void CscanerDlg::OnEnChangeEdit7()
 {
